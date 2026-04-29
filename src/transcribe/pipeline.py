@@ -43,11 +43,11 @@ def transcribe_audio(src: Path, cfg: TranscriptionConfig) -> list[Segment]:
         raise ValueError(
             "hf_token is required for speaker diarization. "
             "Generate one at https://huggingface.co/settings/tokens and "
-            "accept the terms for pyannote/speaker-diarization-3.1 and "
-            "pyannote/segmentation-3.0."
+            "accept the terms for pyannote/speaker-diarization-community-1."
         )
 
     whisperx = importlib.import_module("whisperx")
+    whisperx_diarize = importlib.import_module("whisperx.diarize")
 
     with tempfile.TemporaryDirectory(prefix="transcribe-") as tmp:
         if src.suffix.lower() == ".wav":
@@ -77,11 +77,10 @@ def transcribe_audio(src: Path, cfg: TranscriptionConfig) -> list[Segment]:
             return_char_alignments=False,
         )
 
-        diar_kwargs: dict[str, object] = {
-            "use_auth_token": cfg.hf_token,
-            "device": cfg.device,
-        }
-        diarize_pipeline = whisperx.DiarizationPipeline(**diar_kwargs)
+        diarize_pipeline = whisperx_diarize.DiarizationPipeline(
+            token=cfg.hf_token,
+            device=cfg.device,
+        )
 
         diarize_call_kwargs: dict[str, object] = {}
         if cfg.min_speakers is not None:

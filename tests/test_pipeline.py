@@ -15,11 +15,16 @@ def _fake_whisperx(final_segments):
     fake.load_model.return_value = model
     fake.load_align_model.return_value = (mock.MagicMock(name="align_model"), {"meta": True})
     fake.align.return_value = {"segments": [{"start": 0, "end": 1, "text": "x"}]}
-    diar = mock.MagicMock()
-    diar.return_value = "DIAR_DF"
-    fake.DiarizationPipeline.return_value = diar
     fake.assign_word_speakers.return_value = {"segments": final_segments}
     return fake
+
+
+def _fake_whisperx_diarize():
+    fake_diarize = mock.MagicMock()
+    diar = mock.MagicMock()
+    diar.return_value = "DIAR_DF"
+    fake_diarize.DiarizationPipeline.return_value = diar
+    return fake_diarize
 
 
 class TranscribeAudioTests(unittest.TestCase):
@@ -29,7 +34,11 @@ class TranscribeAudioTests(unittest.TestCase):
             {"start": 2.0, "end": 4.0, "text": "hello", "speaker": "SPEAKER_01"},
         ]
         self.fake = _fake_whisperx(self.final_segments)
-        self.modules_patch = mock.patch.dict(sys.modules, {"whisperx": self.fake})
+        self.fake_diarize = _fake_whisperx_diarize()
+        self.modules_patch = mock.patch.dict(
+            sys.modules,
+            {"whisperx": self.fake, "whisperx.diarize": self.fake_diarize},
+        )
         self.modules_patch.start()
         self.extract_patch = mock.patch(
             "transcribe.pipeline.extract_wav",
@@ -79,9 +88,9 @@ class TranscribeAudioTests(unittest.TestCase):
     def test_passes_hf_token_to_diarization_pipeline(self):
         cfg = TranscriptionConfig(hf_token="my-token", device="cpu")
         transcribe_audio(Path("/tmp/x.mp3"), cfg)
-        self.fake.DiarizationPipeline.assert_called_once()
-        kwargs = self.fake.DiarizationPipeline.call_args.kwargs
-        self.assertEqual(kwargs.get("use_auth_token"), "my-token")
+        self.fake_diarize.DiarizationPipeline.assert_called_once()
+        kwargs = self.fake_diarize.DiarizationPipeline.call_args.kwargs
+        self.assertEqual(kwargs.get("token"), "my-token")
         self.assertEqual(kwargs.get("device"), "cpu")
 
     def test_missing_hf_token_raises(self):
@@ -101,7 +110,7 @@ class TranscribeAudioTests(unittest.TestCase):
     def test_passes_min_max_speakers_when_set(self):
         cfg = TranscriptionConfig(hf_token="tok", min_speakers=2, max_speakers=4)
         transcribe_audio(Path("/tmp/x.mp3"), cfg)
-        diar = self.fake.DiarizationPipeline.return_value
+        diar = self.fake_diarize.DiarizationPipeline.return_value
         kwargs = diar.call_args.kwargs
         self.assertEqual(kwargs.get("min_speakers"), 2)
         self.assertEqual(kwargs.get("max_speakers"), 4)
