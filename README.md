@@ -13,8 +13,7 @@ OpenAI Whisper for transcription with `pyannote.audio` for diarization.
 - [uv](https://docs.astral.sh/uv/)
 - `ffmpeg` on `PATH` (used to extract 16 kHz mono audio from mp3/mp4)
 - A Hugging Face access token, with terms accepted on:
-  - [`pyannote/speaker-diarization-3.1`](https://huggingface.co/pyannote/speaker-diarization-3.1)
-  - [`pyannote/segmentation-3.0`](https://huggingface.co/pyannote/segmentation-3.0)
+  - [`pyannote/speaker-diarization-community-1`](https://huggingface.co/pyannote/speaker-diarization-community-1)
 
 ## Install
 
@@ -93,6 +92,5 @@ boundaries) and [`TODO.md`](TODO.md) for known gaps before MVP.
 
 ## Status
 
-Pre-MVP. The WhisperX integration was written against a recipe and tested
-through mocks; it has not yet been exercised against the real library.
-See `TODO.md` P0.
+Pre-MVP. WhisperX integration verified against the real library (2026-04-29).
+See `TODO.md` for remaining gaps.

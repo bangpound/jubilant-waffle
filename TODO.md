@@ -4,13 +4,12 @@ Tracked gaps before this is a real MVP. Ordered by impact.
 
 ## P0 — must do before trusting it
 
-- [ ] **End-to-end smoke test against real WhisperX.** The pipeline has only been
-  exercised against mocks that reflect my reading of Gemini's 2024 snippet.
-  Add an opt-in integration test (skip unless `TRANSCRIBE_INTEGRATION=1`) that
-  runs a short WAV through the real pipeline and asserts segment shape. First
-  real run will likely surface keyword/argument drift in
-  `whisperx.load_model`, `DiarizationPipeline(...)`, or
-  `assign_word_speakers(...)`. Fix as it surfaces, then revisit P1+.
+- [x] **API drift fixed (2026-04-29).** `DiarizationPipeline` lives in
+  `whisperx.diarize` (not top-level); constructor uses `token=` not
+  `use_auth_token=`; default model is `pyannote/speaker-diarization-community-1`.
+  Real run completes end-to-end; output shape not yet asserted in code.
+- [ ] **Integration test.** Add opt-in test (skip unless `TRANSCRIBE_INTEGRATION=1`)
+  that runs a short WAV through the real pipeline and asserts segment shape.
 
 ## P1 — ergonomics that matter day one
 

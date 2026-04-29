@@ -41,10 +41,12 @@ tests/
 
 Boundaries are isolated so tests stay fast and offline:
 
-- `pipeline.py` does `importlib.import_module("whisperx")` inside the
-  function. Tests inject a fake module via
-  `mock.patch.dict(sys.modules, {"whisperx": fake})` and patch
-  `transcribe.pipeline.extract_wav` separately.
+- `pipeline.py` lazy-imports both `whisperx` and `whisperx.diarize` inside
+  the function. Tests must patch both: `mock.patch.dict(sys.modules,
+  {"whisperx": fake, "whisperx.diarize": fake_diarize})`.
+  `DiarizationPipeline` is NOT exported from `whisperx.__init__` — it lives
+  only in `whisperx.diarize`. Constructor takes `token=` and `device=`.
+  `transcribe.pipeline.extract_wav` is patched separately.
 - `audio.py` uses `subprocess.run`. Tests patch
   `transcribe.audio.subprocess.run`.
 - Formatters are pure functions over `Segment` — no I/O, no mocks needed.
@@ -78,6 +80,7 @@ uv run --python 3.13 transcribe audio.mp3 -o out.vtt --hf-token "$HF_TOKEN"
 ## When picking up work
 
 1. Read `TODO.md` first — P0 items block trusting the tool.
-2. The big known unknown is that the WhisperX call shape was inferred from a
-   2024 snippet and never run for real. Before polishing anything else,
-   verify against the real library.
+2. WhisperX API verified (2026-04-29). Key findings: `DiarizationPipeline` is
+   in `whisperx.diarize` (not top-level); constructor uses `token=` not
+   `use_auth_token=`; default model is `pyannote/speaker-diarization-community-1`
+   (user must accept HF gated access). `torchcodec` warning on macOS is benign.
