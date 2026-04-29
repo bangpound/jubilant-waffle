@@ -58,6 +58,10 @@ tests don't need the real thing installed.
 # tests (44 tests, ~30ms, no whisperx required)
 uv run --python 3.13 python -m unittest discover -s tests
 
+# tests + coverage (matches CI; uses the dev dependency group)
+uv run --python 3.13 --group dev coverage run -m unittest discover -s tests
+uv run --python 3.13 --group dev coverage report
+
 # CLI help
 uv run --python 3.13 transcribe --help
 

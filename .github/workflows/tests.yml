@@ -24,5 +24,28 @@ jobs:
           python-version: "3.13"
           enable-cache: true
 
-      - name: Run unittest suite
-        run: uv run --python 3.13 python -m unittest discover -s tests -v
+      - name: Run unittest suite under coverage
+        run: uv run --python 3.13 --group dev coverage run -m unittest discover -s tests -v
+
+      - name: Coverage report (log)
+        run: uv run --python 3.13 --group dev coverage report
+
+      - name: Coverage report (job summary)
+        run: |
+          {
+            echo "## Coverage"
+            echo
+            echo '```'
+            uv run --python 3.13 --group dev coverage report
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Export coverage XML
+        run: uv run --python 3.13 --group dev coverage xml -o coverage.xml
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+          if-no-files-found: error
